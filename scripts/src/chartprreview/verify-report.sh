@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# test comment
+
 getAnnotations() {
 
   report=$1
