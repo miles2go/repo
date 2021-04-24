@@ -98,7 +98,7 @@ def create_worktree_for_index(branch):
         print("Creating worktree failed:", err, "branch", branch, "directory", dr)
     return dr
 
-def create_index(indexdir, repository, branch, category, organization, chart, version, chart_url):
+def create_index_from_chart(indexdir, repository, branch, category, organization, chart, version, chart_url):
     path = os.path.join("charts", category, organization, chart, version)
     token = os.environ.get("GITHUB_TOKEN")
     print("Downloading index.yaml")
@@ -121,6 +121,8 @@ def create_index(indexdir, repository, branch, category, organization, chart, ve
         # TODO: This block should create 'crt' objct from the report (report without chart scenario)
         print("Chart doesn't exist.", os.path.join(".cr-release-packages", chart_file_name))
         sys.exit(1)
+
+    return crt
 
     print("[INFO] Updating the chart entry with new version")
     crtentries = []
@@ -161,6 +163,125 @@ def create_index(indexdir, repository, branch, category, organization, chart, ve
     if out.returncode:
         print("index.html not updated. Push failed.", "index directory", indexdir, "branch", branch)
         sys.exit(1)
+
+def create_index_from_report(indexdir, repository, branch, category, organization, chart, version, chart_url):
+    path = os.path.join("charts", category, organization, chart, version)
+    token = os.environ.get("GITHUB_TOKEN")
+    print("Downloading index.yaml")
+    r = requests.get(f'https://raw.githubusercontent.com/{repository}/{branch}/index.yaml')
+    original_etag = r.headers.get('etag')
+    if r.status_code == 200:
+        data = yaml.load(r.text, Loader=Loader)
+    else:
+        data = {"apiVersion": "v1",
+            "generated": datetime.now(timezone.utc).astimezone().isoformat(),
+            "entries": {}}
+    chart_file_name = f"{chart}-{version}.tgz"
+    if os.path.exists(os.path.join(".cr-release-packages", chart_file_name)):
+        out = subprocess.run(["helm", "show", "chart", os.path.join(".cr-release-packages", chart_file_name)], capture_output=True)
+        p = out.stdout.decode("utf-8")
+        print(p)
+        print(out.stderr.decode("utf-8"))
+        crt = yaml.load(p, Loader=Loader)
+    else:
+        # TODO: This block should create 'crt' objct from the report (report without chart scenario)
+        print("Chart doesn't exist.", os.path.join(".cr-release-packages", chart_file_name))
+        sys.exit(1)
+
+    return crt
+
+    print("[INFO] Updating the chart entry with new version")
+    crtentries = []
+    entry_name = f"{organization}-{chart}"
+    d = data["entries"].get(entry_name, [])
+    for v in d:
+        if v["version"] == version:
+            continue
+        crtentries.append(v)
+
+    crt["urls"] = [chart_url]
+    crtentries.append(crt)
+    data["entries"][entry_name] = crtentries
+
+    print("[INFO] Add and commit changes to git")
+    out = yaml.dump(data, Dumper=Dumper)
+    with open(os.path.join(indexdir, "index.yaml"), "w") as fd:
+        fd.write(out)
+    out = subprocess.run(["git", "add", os.path.join(indexdir, "index.yaml")], cwd=indexdir, capture_output=True)
+    print(out.stdout.decode("utf-8"))
+    err = out.stderr.decode("utf-8")
+    if err.strip():
+        print("Error adding index.yaml to git staging area", "index directory", indexdir, "branch", branch)
+    out = subprocess.run(["git", "commit", indexdir, "-m", "Update index.html"], cwd=indexdir, capture_output=True)
+    print(out.stdout.decode("utf-8"))
+    err = out.stderr.decode("utf-8")
+    if err.strip():
+        print("Error committing index.yaml", "index directory", indexdir, "branch", branch)
+    r = requests.head(f'https://raw.githubusercontent.com/{repository}/{branch}/index.yaml')
+    etag = r.headers.get('etag')
+    if original_etag and etag and (original_etag != etag):
+        print("index.html not updated. ETag mismatch.", "original ETag", original_etag, "new ETag", etag, "index directory", indexdir, "branch", branch)
+        sys.exit(1)
+    out = subprocess.run(["git", "push", f"https://x-access-token:{token}@github.com/{repository}", f"HEAD:refs/heads/{branch}", "-f"], cwd=indexdir, capture_output=True)
+    print(out.stdout.decode("utf-8"))
+    err = out.stderr.decode("utf-8")
+    print("error:", err)
+    if out.returncode:
+        print("index.html not updated. Push failed.", "index directory", indexdir, "branch", branch)
+        sys.exit(1)
+
+def update_index_and_push(indexdir, repository, branch, category, organization, chart, version, chart_url, chart_entry):
+    token = os.environ.get("GITHUB_TOKEN")
+    print("Downloading index.yaml")
+    r = requests.get(f'https://raw.githubusercontent.com/{repository}/{branch}/index.yaml')
+    original_etag = r.headers.get('etag')
+    if r.status_code == 200:
+        data = yaml.load(r.text, Loader=Loader)
+    else:
+        data = {"apiVersion": "v1",
+            "generated": datetime.now(timezone.utc).astimezone().isoformat(),
+            "entries": {}}
+
+    print("[INFO] Updating the chart entry with new version")
+    crtentries = []
+    entry_name = f"{organization}-{chart}"
+    d = data["entries"].get(entry_name, [])
+    for v in d:
+        if v["version"] == version:
+            continue
+        crtentries.append(v)
+
+    chart_entry["urls"] = [chart_url]
+    crtentries.append(chart_entry)
+    data["entries"][entry_name] = crtentries
+
+    print("[INFO] Add and commit changes to git")
+    out = yaml.dump(data, Dumper=Dumper)
+    with open(os.path.join(indexdir, "index.yaml"), "w") as fd:
+        fd.write(out)
+    out = subprocess.run(["git", "add", os.path.join(indexdir, "index.yaml")], cwd=indexdir, capture_output=True)
+    print(out.stdout.decode("utf-8"))
+    err = out.stderr.decode("utf-8")
+    if err.strip():
+        print("Error adding index.yaml to git staging area", "index directory", indexdir, "branch", branch)
+    out = subprocess.run(["git", "commit", indexdir, "-m", "Update index.html"], cwd=indexdir, capture_output=True)
+    print(out.stdout.decode("utf-8"))
+    err = out.stderr.decode("utf-8")
+    if err.strip():
+        print("Error committing index.yaml", "index directory", indexdir, "branch", branch)
+    r = requests.head(f'https://raw.githubusercontent.com/{repository}/{branch}/index.yaml')
+    etag = r.headers.get('etag')
+    if original_etag and etag and (original_etag != etag):
+        print("index.html not updated. ETag mismatch.", "original ETag", original_etag, "new ETag", etag, "index directory", indexdir, "branch", branch)
+        sys.exit(1)
+    out = subprocess.run(["git", "push", f"https://x-access-token:{token}@github.com/{repository}", f"HEAD:refs/heads/{branch}", "-f"], cwd=indexdir, capture_output=True)
+    print(out.stdout.decode("utf-8"))
+    err = out.stderr.decode("utf-8")
+    print("error:", err)
+    if out.returncode:
+        print("index.html not updated. Push failed.", "index directory", indexdir, "branch", branch)
+        sys.exit(1)
+
 
 def update_chart_annotation(organization, chart_file_name, chart, report_path):
     dr = tempfile.mkdtemp(prefix="annotations-")
@@ -206,6 +327,10 @@ def main():
     branch = args.branch.split("/")[-1]
     category, organization, chart, version = get_modified_charts()
     chart_source_exists, chart_tarball_exists = check_chart_source_or_tarball_exists(category, organization, chart, version)
+
+    print("[INFO] Creating Git worktree for index branch")
+    indexdir = create_worktree_for_index(branch)
+
     if chart_source_exists or chart_tarball_exists:
         if chart_source_exists:
             prepare_chart_source_for_release(category, organization, chart, version)
@@ -225,11 +350,14 @@ def main():
         print("[INFO] Updating chart annotation")
         update_chart_annotation(organization, chart_file_name, chart, report_path)
         chart_url = f"https://github.com/{args.repository}/releases/download/{organization}-{chart}-{version}/{organization}-{chart}-{version}.tgz"
+
+        print("[INFO] Creating index from chart")
+        chart_entry = create_index_from_chart(indexdir, args.repository, branch, category, organization, chart, version, chart_url)
     else:
         # TODO: The URL should be extracted from the report
         chart_url = f"https://example.com/chart.tgz"
 
-    print("[INFO] Creating Git worktree for index branch")
-    indexdir = create_worktree_for_index(branch)
-    print("[INFO] Creating index")
-    create_index(indexdir, args.repository, branch, category, organization, chart, version, chart_url)
+        print("[INFO] Creating index from report")
+        chart_entry = create_index_from_report(indexdir, args.repository, branch, category, organization, chart, version, chart_url)
+
+    update_index_and_push(indexdir, args.repository, branch, category, organization, chart, version, chart_url, chart_entry)
