@@ -119,7 +119,7 @@ def generate_and_verify_report(category, organization, chart, version):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-u", "--verify-user", dest="username", type=str, required=True,
+    parser.add_argument("-n", "--verify-user", dest="username", type=str, required=True,
                                         help="check if the user can update the chart")
     parser.add_argument("-u", "--api-url", dest="api_url", type=str, required=True,
                                         help="API URL for the pull request")
