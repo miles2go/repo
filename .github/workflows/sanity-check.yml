@@ -16,6 +16,11 @@ jobs:
         with:
           python-version: '3.9'
 
+      - name: Dump github context
+        run: echo "$GITHUB_CONTEXT"
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
       - name: Sanity Check PR Content
         id: sanity_check_pr_content
         continue-on-error: true
