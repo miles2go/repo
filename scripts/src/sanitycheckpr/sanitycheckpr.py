@@ -10,6 +10,7 @@ ALLOW_CI_CHANGES = "allow/ci-changes"
 def ensure_only_chart_is_modified(api_url):
     # api_url https://api.github.com/repos/<organization-name>/<repository-name>/pulls/1
     headers = {'Accept': 'application/vnd.github.v3+json'}
+    print("API URL", api_url)
     r = requests.get(api_url, headers=headers)
     for label in r.json()["labels"]:
         if label["name"] == ALLOW_CI_CHANGES:
