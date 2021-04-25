@@ -19,7 +19,7 @@ jobs:
   automerge:
     runs-on: ubuntu-latest
     steps:
-      - uses: reitermarkus/automerge@v1
+      - uses: reitermarkus/automerge@v1.5.2
         with:
           token: ${{ secrets.BOT_TOKEN }}
           merge-method: squash
