@@ -1,0 +1,20 @@
+name: Enable Auto Merge
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited, labeled, ready_for_review]
+
+jobs:
+  auto-approve:
+    name: Approve and enable auto-merge
+    #    if: contains(github.event.pull_request.labels.*.name, 'authorized-request')
+    runs-on: ubuntu-latest
+    steps:
+    - uses: hmarr/auto-approve-action@v2
+      with:
+        github-token: ${{ secrets.BOT_TOKEN }}
+
+    - uses: alexwilson/enable-github-automerge-action@1.0.0
+      with:
+        github-token: ${{ secrets.BOT_TOKEN }}
+        merge-method: "SQUASH"
