@@ -25,12 +25,11 @@ def get_modified_charts():
     print(files.stdout.decode("utf-8"))
     print(files.stderr.decode("utf-8"))
     pattern = re.compile("charts/(\w+)/([\w-]+)/([\w-]+)/([\w\.]+)/.*")
-    count = 0
     for line in files.stdout.decode("utf-8").split('\n'):
         m = pattern.match(line)
         if m:
             category, organization, chart, version = m.groups()
-            return category, organization, chart, version
+            return category, organization, chart, version, commit_hash
     print("No modified files found.")
     sys.exit(0)
 
@@ -82,11 +81,11 @@ def prepare_chart_tarball_for_release(category, organization, chart, version):
     shutil.copy(path, f".cr-release-packages/{new_chart_file_name}")
     shutil.copy(path, chart_file_name)
 
-def push_chart_release(repository, organization, branch):
+def push_chart_release(repository, organization, branch, commit_hash):
     org, repo = repository.split("/")
     token = os.environ.get("GITHUB_TOKEN")
     print("[INFO] Upload chart using the chart-releaser")
-    out = subprocess.run(["cr", "upload", "-o", org, "-r", repo, "--release-name-template", f"{organization}-"+"{{ .Name }}-{{ .Version }}", "-t", token], capture_output=True)
+    out = subprocess.run(["cr", "upload", "-c", commit_hash, "-o", org, "-r", repo, "--release-name-template", f"{organization}-"+"{{ .Name }}-{{ .Version }}", "-t", token], capture_output=True)
     print(out.stdout.decode("utf-8"))
     print(out.stderr.decode("utf-8"))
 
@@ -235,7 +234,7 @@ def main():
                                         help="Git Repository")
     args = parser.parse_args()
     branch = args.branch.split("/")[-1]
-    category, organization, chart, version = get_modified_charts()
+    category, organization, chart, version, commit_hash = get_modified_charts()
     chart_source_exists, chart_tarball_exists = check_chart_source_or_tarball_exists(category, organization, chart, version)
 
     print("[INFO] Creating Git worktree for index branch")
@@ -248,7 +247,7 @@ def main():
             prepare_chart_tarball_for_release(category, organization, chart, version)
 
         print("[INFO] Publish chart release to GitHub")
-        push_chart_release(args.repository, organization, branch)
+        push_chart_release(args.repository, organization, branch, commit_hash)
 
         print("[INFO] Check if report exist as part of the commit")
         report_exists, report_path = check_report_exists(category, organization, chart, version)
