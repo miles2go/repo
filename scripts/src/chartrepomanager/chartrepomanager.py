@@ -32,18 +32,14 @@ def get_modified_charts(api_url):
     sys.exit(0)
 
 def get_current_commit_sha():
-    commit = subprocess.run(["git", "rev-parse", "--verify", "HEAD"], capture_output=True)
-    print(commit.stdout.decode("utf-8"))
-    print(commit.stderr.decode("utf-8"))
-    commit_hash = commit.stdout.strip()
-	print("Cuurent commit sha from PR branch:", commit_hash, os.getcwd())
     cwd = os.getcwd()
     os.chdir("..")
+    commit = subprocess.run(["git", "pull", "--all", "--force"], capture_output=True)
     commit = subprocess.run(["git", "rev-parse", "--verify", "HEAD"], capture_output=True)
     print(commit.stdout.decode("utf-8"))
     print(commit.stderr.decode("utf-8"))
     commit_hash = commit.stdout.strip()
-	print("Cuurent commit sha from top-level directory:", commit_hash, os.getcwd())
+    print("Cuurent commit sha:", commit_hash)
     os.chdir(cwd)
     return commit_hash
 
@@ -296,7 +292,7 @@ def main():
         if chart_tarball_exists:
             prepare_chart_tarball_for_release(category, organization, chart, version)
 
-		commit_hash = get_current_commit_sha()
+        commit_hash = get_current_commit_sha()
         print("[INFO] Publish chart release to GitHub")
         push_chart_release(args.repository, organization, branch, commit_hash)
 
