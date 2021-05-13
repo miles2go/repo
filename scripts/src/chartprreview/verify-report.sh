@@ -10,8 +10,8 @@ mandatoryChecks=( "${delim}contains-test${delim}"
             "${delim}images-are-certified${delim}"
             "${delim}is-helm-v3${delim}"
             "${delim}not-contain-csi-objects${delim}"
+            "${delim}chart-testing${delim}"
             "${delim}not-contains-crds${delim}" )
-
 
 getDigest() {
 
@@ -157,19 +157,16 @@ getAnnotations() {
       elif [ "$tool" = true ]; then
         if [[ $line == "digest:"* ]]; then
             digest=`echo "$line" | sed 's/digest://' | xargs`
-            annotations+=("\"helm-chart.openshift.io/digest\":\"$digest\"")
+            annotations+=("\"chart.openshift.io/digest\":\"$digest\"")
         elif [[ $line == "lastCertifiedTimestamp:"* ]]; then
             certtime=`echo "$line" | sed 's/lastCertifiedTimestamp://' | xargs`
-            annotations+=("\"helm-chart.openshift.io/lastCertifiedTimestamp\":\"$certtime\"")
-        elif [[ $line == "lastCertifiedTime:"* ]]; then
-            certtime=`echo "$line" | sed 's/lastCertifiedTime://' | xargs`
-            annotations+=("\"helm-chart.openshift.io/lastCertifiedTimestamp\":\"$certtime\"")
+            annotations+=("\"chart.openshift.io/lastCertifiedTimestamp\":\"$certtime\"")
         fi
       elif [ "$chart" = true ]; then
         if [[ $line == "annotations:"* ]]; then
             chartannotations=true
         elif [ "$chartannotations" = true ]; then
-          if [[ $line == "helm-chart.openshift.io/"* ]]; then
+          if [[ $line == "chart.openshift.io/"* ]]; then
              name=`echo $line | cut -d: -f1 | xargs`
              value=`echo "$line" | sed "s#$name:##" | xargs`
              annotations+=("\"$name\":\"$value\"")
@@ -204,27 +201,32 @@ getFails() {
 
   while IFS= read -r line; do
 
+
     if [[ ! -z $line ]]; then
       if [[ $line == "results:"* ]]; then
         results=true
       elif [ "$results" = true ]; then
         if [[ $line == *" - "* ]]; then
             multireason=false
+            nextlinereason=false
             check=""
             type=""
             outcome=""
             reason=""
         fi
         if [[ $line == *"check:"* ]]; then
-           check=`echo $line | cut -d: -f2 | xargs`
+           check=`echo "$line" | cut -d: -f2- | xargs`
         elif [[ $line == *"type:"* ]]; then
-           type=`echo $line | cut -d: -f2 | xargs`
+           type=`echo $line | cut -d: -f2- | xargs`
         elif [[ $line == *"outcome:"* ]]; then
-           outcome=`echo $line | cut -d: -f2 | xargs`
+           outcome=`echo $line | cut -d: -f2- | xargs`
         elif [[ $line == *"reason:"* ]]; then
-           reason=`echo $line | cut -d: -f2 | xargs`
-           if [[ $reason == *'-' ]]; then
+           reason=`echo $line | cut -d: -f2- | xargs`
+           if [[ $reason == *'|-' ]]; then
              multireason=true
+             reason=""
+           elif [[ $reason == *'|' ]]; then
+             nextlinereason=true
              reason=""
            fi
         elif [ "$multireason" = true ]; then
@@ -234,6 +236,9 @@ getFails() {
           else
             outcome="FAIL"
           fi
+        elif [ "$nextlinereason" = true ]; then
+          reason=`echo $line | xargs`
+          nextlinereason=false
         fi
 
         if [ -n "$check" ] && [ -n "$type" ] && [ -n "$outcome" ] && [ -n "$reason" ]; then
@@ -243,9 +248,6 @@ getFails() {
             passed=$((passed+1))
           fi
 
-          if [ $check == "has-minkubeversion" ]; then
-            check="has-kubeversion"
-          fi
           remove="$delim$check$delim"
           mandatoryChecks=("${mandatoryChecks[@]/$remove}")
         fi
