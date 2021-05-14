@@ -245,7 +245,7 @@ jobs:
         continue-on-error: true
         with:
           tag_name: ${{ steps.release-charts.outputs.tag }}
-          files: report.yaml
+          files: pr-branch/report.yaml
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
