@@ -221,6 +221,15 @@ def check_report_success(directory, report_path, version):
         write_error_log(directory, msg)
         sys.exit(1)
 
+    if "charts.openshift.io/certifiedOpenShiftVersions" in annotations:
+        pattern = re.compile("(\d+).(\d+).*")
+        full_version = annotations["charts.openshift.io/certifiedOpenShiftVersions"]
+        match = pattern.match(full_version)
+        if not match:
+            msg = f"[ERROR] No matching OpenShift version found: {full_version}"
+            write_error_log(directory, msg)
+            sys.exit(1)
+
     out = subprocess.run(["scripts/src/chartprreview/verify-report.sh", "results", report_path], capture_output=True)
     r = out.stdout.decode("utf-8")
     print("[INFO] results:", r)
