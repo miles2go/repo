@@ -1,4 +1,5 @@
 import sys
+import time
 import os
 import base64
 import json
@@ -140,7 +141,6 @@ def write_sa_token(namespace, token):
         print("[ERROR] retrieving ServiceAccount:", namespace, stderr)
         sys.exit(1)
 
-    secret_found = False
     for secret in sa["secrets"]:
         out = subprocess.run(["./oc", "get", "secret", secret["name"], "-n", namespace, "-o", "json"], capture_output=True)
         stdout = out.stdout.decode("utf-8")
@@ -155,6 +155,23 @@ def write_sa_token(namespace, token):
                 content = sec["data"]["token"]
                 with open(token, "w") as fd:
                     fd.write(base64.b64decode(content).decode("utf-8"))
+
+def switch_project_context(namespace, token):
+    tkn = open(token).read()
+    for i in range(7):
+        out = subprocess.run(["./oc", "login", "--token", tkn, "--server", "https://api.ocpappsvc-osd.zn6c.p1.openshiftapps.com:6443"], capture_output=True)
+        stdout = out.stdout.decode("utf-8")
+        print(stdout)
+        out = subprocess.run(["./oc", "project", namespace], capture_output=True)
+        stdout = out.stdout.decode("utf-8")
+        print(stdout)
+        out = subprocess.run(["./oc", "config", "current-context"], capture_output=True)
+        stdout = out.stdout.decode("utf-8").strip()
+        print(stdout)
+        if stdout.endswith(":".join((namespace, namespace))):
+            print("current-context:", stdout)
+            return
+        time.sleep(10)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -172,6 +189,7 @@ def main():
         create_role(args.create)
         create_rolebinding(args.create)
         write_sa_token(args.create, args.token)
+        switch_project_context(args.create, args.token)
     elif args.delete:
         delete_namespace(args.delete)
     else:
