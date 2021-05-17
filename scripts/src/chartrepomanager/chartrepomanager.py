@@ -252,9 +252,6 @@ def update_chart_annotation(category, organization, chart_file_name, chart, repo
         match = pattern.match(full_version)
         if match:
             annotations["charts.openshift.io/certifiedOpenShiftVersions"] = ".".join(match.groups())
-        else:
-            print("[ERROR] No matching OpenShift version found")
-            sys.exit(1)
 
     out = subprocess.run(["tar", "zxvf", os.path.join(".cr-release-packages", f"{organization}-{chart_file_name}"), "-C", dr], capture_output=True)
     print(out.stdout.decode("utf-8"))
