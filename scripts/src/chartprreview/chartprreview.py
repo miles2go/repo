@@ -7,6 +7,7 @@ import json
 import hashlib
 import tempfile
 
+import semver
 import requests
 import yaml
 try:
@@ -222,10 +223,8 @@ def check_report_success(directory, report_path, version):
         sys.exit(1)
 
     if "charts.openshift.io/certifiedOpenShiftVersions" in annotations:
-        pattern = re.compile("(\d+).(\d+).*")
         full_version = annotations["charts.openshift.io/certifiedOpenShiftVersions"]
-        match = pattern.match(full_version)
-        if not match:
+        if not semver.VersionInfo.isvalid(full_version):
             msg = f"[ERROR] No matching OpenShift version found: {full_version}"
             write_error_log(directory, msg)
             sys.exit(1)
