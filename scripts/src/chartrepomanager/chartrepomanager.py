@@ -4,12 +4,12 @@ import os
 import sys
 import re
 import subprocess
-import datetime
 import tempfile
 from datetime import datetime, timezone
 import json
 import urllib.parse
 
+import semver
 import requests
 import yaml
 try:
@@ -247,11 +247,9 @@ def update_chart_annotation(category, organization, chart_file_name, chart, repo
         annotations["charts.openshift.io/provider"] = vendor_name
 
     if "charts.openshift.io/certifiedOpenShiftVersions" in annotations:
-        pattern = re.compile("(\d+).(\d+).*")
         full_version = annotations["charts.openshift.io/certifiedOpenShiftVersions"]
-        match = pattern.match(full_version)
-        if match:
-            annotations["charts.openshift.io/certifiedOpenShiftVersions"] = ".".join(match.groups())
+        ver = semver.VersionInfo.parse(full_version)
+        annotations["charts.openshift.io/certifiedOpenShiftVersions"] = ".".join((ver.major, ver.minor))
 
     out = subprocess.run(["tar", "zxvf", os.path.join(".cr-release-packages", f"{organization}-{chart_file_name}"), "-C", dr], capture_output=True)
     print(out.stdout.decode("utf-8"))
