@@ -8,6 +8,7 @@ jobs:
   chart-certification:
     name: Chart Certification
     runs-on: ubuntu-20.04
+    if: github.event.pull_request.draft == false
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -203,6 +204,7 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Release Charts
+        if: github.event.pull_request.merged == true
         env:
           GITHUB_REF: ${{ github.ref }}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -217,6 +219,7 @@ jobs:
           ../ve1/bin/chart-repo-manager --repository=${{ github.repository }} --index-branch=${INDEX_BRANCH} --api-url=${{ github.event.pull_request._links.self.href }} --pr-number=${{ github.event.number }}
 
       - name: Release
+        if: github.event.pull_request.merged == true
         uses: softprops/action-gh-release@master
         continue-on-error: true
         with:
