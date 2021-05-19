@@ -209,8 +209,11 @@ jobs:
           echo "${{ toJson(github.event.pull_request.labels) }}"
           echo "${{ toJson(github.event.pull_request.labels.*.name) }}"
 
+      - name: Check for automerge
+        run: |
+          ./ve1/bin/check-auto-merge --api-url=${{ github.event.pull_request._links.self.href }}
+
       - name: Release Charts
-        if: ${{ !contains(github.event.pull_request.labels.*.name, 'automerge') }}
         env:
           GITHUB_REF: ${{ github.ref }}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -225,7 +228,6 @@ jobs:
           ../ve1/bin/chart-repo-manager --repository=${{ github.repository }} --index-branch=${INDEX_BRANCH} --api-url=${{ github.event.pull_request._links.self.href }} --pr-number=${{ github.event.number }}
 
       - name: Release
-        if: ${{ !contains(github.event.pull_request.labels.*.name, 'automerge') }}
         uses: softprops/action-gh-release@master
         continue-on-error: true
         with:
@@ -234,9 +236,3 @@ jobs:
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Error PR merge failure
-        if: ${{ contains(github.event.pull_request.labels.*.name, 'automerge') }}
-        run: |
-          echo "Pull request failed to merge."
-          exit 1
