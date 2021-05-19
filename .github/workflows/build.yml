@@ -204,6 +204,11 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      - name: debug
+        run: |
+          echo "${{ toJson(github.event.pull_request.labels) }}"
+          echo "${{ toJson(github.event.pull_request.labels.*.name) }}"
+
       - name: Release Charts
         if: ${{ !contains(github.event.pull_request.labels.*.names, 'automerge') }}
         env:
