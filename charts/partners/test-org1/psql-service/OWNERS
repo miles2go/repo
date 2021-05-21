@@ -1,0 +1,9 @@
+chart:
+  name: psql-service
+  shortDescription: null
+publicPgpKey: null
+users:
+- githubUsername: baijum
+vendor:
+  label: test-org1
+  name: Test Org
