@@ -77,8 +77,12 @@ def the_partner_has_created_a_report_without_any_errors(secrets):
         print(out.stdout.decode("utf-8"))
         print(out.stderr.decode("utf-8"))
 
+    r = requests.get(f"https://api.github.com/repos/{secrets.test_repo}/git/ref/heads/gh-pages", headers=headers)
+    j = json.loads(r.text)
+    sha = j["object"]["sha"]
+
     headers = {"Accept": "application/vnd.github.v3+jsonr", "Authorization": f"token {secrets.bot_token}"}
-    data = {"ref": f"{secrets.pr_base_branch}-gh-pages", "sha": "gh-pages"}
+    data = {"ref": f"refs/heads/{secrets.pr_base_branch}-gh-pages", "sha": sha}
     r = requests.post(f"https://api.github.com/repos/{secrets.test_repo}/git/refs", headers=headers, json=data)
 
     old_cwd = os.getcwd()
