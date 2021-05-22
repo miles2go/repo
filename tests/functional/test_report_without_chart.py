@@ -139,6 +139,8 @@ def the_partner_has_created_a_report_without_any_errors(secrets):
 def the_partner_sends_the_pull_request_with_the_report(secrets):
     """the partner sends the pull request with the report."""
 
+    fork_branch = secrets.pr_base_branch + "-s1"
+
     headers = {"Accept": "application/vnd.github.v3+json", "Authorization": f"token {secrets.bot_token}"}
     data = {"head": f"{secrets.bot_name}:{fork_branch}", "base": secrets.pr_base_branch, "title": fork_branch}
     r = requests.post(f"https://api.github.com/repos/{secrets.test_repo}/pulls", headers=headers, json=data)
