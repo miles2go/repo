@@ -64,7 +64,7 @@ jobs:
         if: steps.sanity_check_pr_content.outcome == 'failure' && contains(github.event.pull_request.labels.*.name, 'allow/ci-changes')
         run: |
           cd pr-branch
-          ../ve1/bin/behave
+          ../ve1/bin/pytest tests/ -s -vvv
           cd ..
 
       - name: Reflect on Sanity Check PR Content
