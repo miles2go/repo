@@ -40,8 +40,8 @@ def secrets():
     bot_token = os.environ.get("BOT_TOKEN")
     if not bot_token:
         bot_token = os.environ.get("GITHUB_TOKEN")
-            if not bot_token:
-                raise Exception("BOT_TOKEN environment variable not defined")
+        if not bot_token:
+            raise Exception("BOT_TOKEN environment variable not defined")
     pr_number = os.environ.get("PR_NUMBER")
     if not pr_number:
         raise Exception("PR_NUMBER environment variable not defined")
