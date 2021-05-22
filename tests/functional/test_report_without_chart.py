@@ -6,6 +6,7 @@ import subprocess
 from dataclasses import dataclass
 from string import Template
 import tempfile
+import json
 
 import requests
 import pytest
