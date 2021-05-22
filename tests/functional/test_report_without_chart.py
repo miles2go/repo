@@ -136,7 +136,7 @@ def the_partner_has_created_a_report_without_any_errors(secrets):
     os.chdir(old_cwd)
 
 @when('the partner sends the pull request with the report')
-def the_partner_sends_the_pull_request_with_the_report():
+def the_partner_sends_the_pull_request_with_the_report(secrets):
     """the partner sends the pull request with the report."""
 
     headers = {"Accept": "application/vnd.github.v3+json", "Authorization": f"token {secrets.bot_token}"}
