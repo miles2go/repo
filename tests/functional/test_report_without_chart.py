@@ -132,16 +132,16 @@ def the_partner_has_created_a_report_without_any_errors(secrets):
     out = subprocess.run(["git", "push", f"https://x-access-token:{secrets.bot_token}@github.com/{secrets.fork_repo}", f"HEAD:{fork_branch}", "-f"], capture_output=True)
     print(out.stdout.decode("utf-8"))
     print(out.stderr.decode("utf-8"))
-    os.chdir(old_cwd)
 
-    headers = {"Accept": "application/vnd.github.v3+json", "Authorization": f"token {secrets.bot_token}"}
-    data = {"head": f"{secrets.bot_name}:{fork_branch}", "base": secrets.pr_base_branch, "title": fork_branch}
-    r = requests.post(f"https://api.github.com/repos/{secrets.test_repo}/pulls", headers=headers, json=data)
+    os.chdir(old_cwd)
 
 @when('the partner sends the pull request with the report')
 def the_partner_sends_the_pull_request_with_the_report():
     """the partner sends the pull request with the report."""
 
+    headers = {"Accept": "application/vnd.github.v3+json", "Authorization": f"token {secrets.bot_token}"}
+    data = {"head": f"{secrets.bot_name}:{fork_branch}", "base": secrets.pr_base_branch, "title": fork_branch}
+    r = requests.post(f"https://api.github.com/repos/{secrets.test_repo}/pulls", headers=headers, json=data)
 
 @then('the index.yaml is updated with a new entry')
 def the_indexyaml_is_updated_with_a_new_entry():
