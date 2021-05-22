@@ -77,6 +77,10 @@ def the_partner_has_created_a_report_without_any_errors(secrets):
         print(out.stdout.decode("utf-8"))
         print(out.stderr.decode("utf-8"))
 
+    headers = {"Accept": "application/vnd.github.v3+jsonr", "Authorization": f"token {secrets.bot_token}"}
+    data = {"ref": f"{secrets.pr_base_branch}-gh-pages", "sha": "gh-pages"}
+    r = requests.post(f"https://api.github.com/repos/{secrets.test_repo}/git/refs", headers=headers, json=data)
+
     old_cwd = os.getcwd()
     dr = tempfile.mkdtemp(prefix="tci-")
     print("[INFO] worktree directory:", dr)
