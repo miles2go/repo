@@ -9,7 +9,7 @@ entries:
       charts.openshift.io/name: PSQL RedHat Demo Chart
       charts.openshift.io/provider: RedHat
       charts.openshift.io/providerType: partner
-      charts.openshift.io/submissionTimestamp: '2021-05-22T10:11:50.447935+00:00'
+      charts.openshift.io/submissionTimestamp: '2021-05-22T10:12:41.936948+00:00'
       charts.openshift.io/supportURL: https://github.com/dperaza4dustbit/helm-chart
     apiversion: v2
     appversion: 10.0.0
@@ -183,4 +183,4 @@ entries:
     urls:
     - https://github.com/miles2go/repo/releases/download/test-org1-psql-service-0.1.21/test-org1-psql-service-0.1.21.tgz
     version: 0.1.21
-generated: '2021-05-22T10:11:50.447935+00:00'
+generated: '2021-05-22T10:12:41.936948+00:00'
