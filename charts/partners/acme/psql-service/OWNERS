@@ -1,0 +1,9 @@
+chart:
+  name: psql-service
+  shortDescription: null
+publicPgpKey: null
+users:
+- githubUsername: openshift-helm-charts-bot
+vendor:
+  label: acme
+  name: ACME Inc.
