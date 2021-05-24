@@ -176,11 +176,6 @@ jobs:
                 labels: ['authorized-request']
             })};
 
-      - name: Fail the job if Verify PR step fails
-        if: ${{ steps.verify_pr.conclusion == 'failure' }}
-        run: |
-           exit 1
-
       - name: 'Approve PR'
         id: approve_pr
         if: ${{ steps.verify_pr.conclusion == 'success' }}
@@ -206,6 +201,19 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - uses: actions/github-script@v3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            var pr = github.pulls.get({
+                       owner: context.repo.owner,
+                       repo: context.repo.repo,
+                       pull_number: ${{ github.event.pull_request.number }}
+                    });
+            if (!pr.merged) {
+              core.setFailed('not merged')
+            }
 
       - name: Release Charts
         env:
