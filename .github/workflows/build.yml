@@ -206,14 +206,25 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
+            for (let i = 0; i < 5; i++) {
+              var pr = github.pulls.get({
+                         owner: context.repo.owner,
+                         repo: context.repo.repo,
+                         pull_number: ${{ github.event.pull_request.number }}
+                      });
+              if (pr.merged) {
+                break;
+              }
+              await new Promise(r => setTimeout(r, 20000));
+            };
             var pr = github.pulls.get({
                        owner: context.repo.owner,
                        repo: context.repo.repo,
                        pull_number: ${{ github.event.pull_request.number }}
                     });
             if (!pr.merged) {
-              core.setFailed('not merged')
-            }
+              core.setFailed('not merged');
+            };
 
       - name: Release Charts
         env:
