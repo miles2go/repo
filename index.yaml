@@ -20,4 +20,23 @@ entries:
     urls:
     - https://github.com/miles2go/repo/releases/download/test-org1-psql-service-0.1.32/test-org1-psql-service-0.1.32.tgz
     version: 0.1.32
-generated: '2021-06-14T16:55:38.481290+00:00'
+  - annotations:
+      charts.openshift.io/archs: x86_64
+      charts.openshift.io/certifiedOpenShiftVersions: '4.7'
+      charts.openshift.io/digest: sha256:fb482d931aeaeb65a6b27b8fcf0dbf457b576b055dfb6bd633d57be221e62df8
+      charts.openshift.io/lastCertifiedTimestamp: '2021-06-22T15:46:58.709898+00:00'
+      charts.openshift.io/name: PSQL RedHat Demo Chart
+      charts.openshift.io/provider: RedHat
+      charts.openshift.io/providerType: partner
+      charts.openshift.io/submissionTimestamp: '2021-06-22T15:47:23.109981+00:00'
+      charts.openshift.io/supportURL: https://github.com/dperaza4dustbit/helm-chart
+    apiVersion: v2
+    appVersion: 10.0.0
+    description: A Helm chart for a RedHat Certified PSQL
+    kubeVersion: 1.20.0
+    name: psql-service
+    type: application
+    urls:
+    - https://github.com/miles2go/repo/releases/download/test-org1-psql-service-0.1.33/test-org1-psql-service-0.1.33.tgz
+    version: 0.1.33
+generated: '2021-06-22T15:47:23.109981+00:00'
